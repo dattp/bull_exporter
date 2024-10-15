@@ -77,7 +77,7 @@ export class MetricCollector {
   }
 
   public async discoverAll(): Promise<void> {
-    const keyPattern = new RegExp(`^${this.bullOpts.prefix}:([^:]+):(id|failed|active|waiting|stalled-check)$`);
+    const keyPattern = new RegExp(`(?:bull:\w+:\w+|\w+:jobs::([^:]+):(id|failed|active|waiting|stalled-check)$)`);
     this.logger.info({ pattern: keyPattern.source }, 'running queue discovery');
 
     const keyStream = this.defaultRedisClient.scanStream({
