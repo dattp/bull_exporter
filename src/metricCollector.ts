@@ -77,29 +77,34 @@ export class MetricCollector {
   }
 
   public async discoverAll(): Promise<void> {
-    const keyPattern = new RegExp(`(?:bull:\w+:\w+|\w+:jobs::([^:]+):(id|failed|active|waiting|stalled-check)$)`);
-    this.logger.info({ pattern: keyPattern.source }, 'running queue discovery');
+    const keyPatternBull = new RegExp(`^bull:([^:]+):(id|failed|active|waiting|stalled-check)$`);
+    this.logger.info({ pattern: keyPatternBull.source }, 'running queue discovery');
+    this.logger.info({ pattern: keyPatternBull.source }, 'running queue discovery');
 
     const keyStreamBull = this.defaultRedisClient.scanStream({
       match: `bull:*:*`,
     });
 
-    const keyStreamService = this.defaultRedisClient.scanStream({
-      match: `*:jobs::*`,
-    })
+
     // tslint:disable-next-line:await-promise tslint does not like Readable's here
     for await (const keyChunk of keyStreamBull) {
       for (const key of keyChunk) {
-        const match = keyPattern.exec(key);
+        const match = keyPatternBull.exec(key);
         if (match && match[1]) {
           this.addToQueueSet([match[1]]);
         }
       }
     }
 
+    const keyPatternService = new RegExp(`\w+:jobs::([^:]+):(id|failed|active|waiting|stalled-check)$`);
+    this.logger.info({ pattern: keyPatternService.source }, 'running queue discovery');
+
+    const keyStreamService = this.defaultRedisClient.scanStream({
+      match: `*:jobs::*`,
+    })
     for await (const keyChunk of keyStreamService) {
       for (const key of keyChunk) {
-        const match = keyPattern.exec(key);
+        const match = keyPatternService.exec(key);
         if (match && match[1]) {
           this.addToQueueSet([match[1]]);
         }
