@@ -79,7 +79,6 @@ export class MetricCollector {
   public async discoverAll(): Promise<void> {
     const keyPatternBull = new RegExp(`^bull:([^:]+):(id|failed|active|waiting|stalled-check)$`);
     this.logger.info({ pattern: keyPatternBull.source }, 'running queue discovery');
-    this.logger.info({ pattern: keyPatternBull.source }, 'running queue discovery');
 
     const keyStreamBull = this.defaultRedisClient.scanStream({
       match: `bull:*:*`,
@@ -104,7 +103,11 @@ export class MetricCollector {
     })
     for await (const keyChunk of keyStreamService) {
       for (const key of keyChunk) {
+        this.logger.info('===>key: ', key);
+
         const match = keyPatternService.exec(key);
+        this.logger.info('===>match: ', match);
+
         if (match && match[1]) {
           this.addToQueueSet([match[1]]);
         }
