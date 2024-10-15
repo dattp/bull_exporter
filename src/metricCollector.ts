@@ -88,7 +88,16 @@ export class MetricCollector {
       match: `*:jobs::*`,
     })
     // tslint:disable-next-line:await-promise tslint does not like Readable's here
-    for await (const keyChunk of [...keyStreamBull, ...keyStreamService]) {
+    for await (const keyChunk of keyStreamBull) {
+      for (const key of keyChunk) {
+        const match = keyPattern.exec(key);
+        if (match && match[1]) {
+          this.addToQueueSet([match[1]]);
+        }
+      }
+    }
+
+    for await (const keyChunk of keyStreamService) {
       for (const key of keyChunk) {
         const match = keyPattern.exec(key);
         if (match && match[1]) {
