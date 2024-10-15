@@ -80,11 +80,15 @@ export class MetricCollector {
     const keyPattern = new RegExp(`(?:bull:\w+:\w+|\w+:jobs::([^:]+):(id|failed|active|waiting|stalled-check)$)`);
     this.logger.info({ pattern: keyPattern.source }, 'running queue discovery');
 
-    const keyStream = this.defaultRedisClient.scanStream({
-      match: `${this.bullOpts.prefix}:*:*`,
+    const keyStreamBull = this.defaultRedisClient.scanStream({
+      match: `bull:*:*`,
     });
+
+    const keyStreamService = this.defaultRedisClient.scanStream({
+      match: `*:jobs::*`,
+    })
     // tslint:disable-next-line:await-promise tslint does not like Readable's here
-    for await (const keyChunk of keyStream) {
+    for await (const keyChunk of [...keyStreamBull, ...keyStreamService]) {
       for (const key of keyChunk) {
         const match = keyPattern.exec(key);
         if (match && match[1]) {
