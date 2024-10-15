@@ -95,7 +95,7 @@ export class MetricCollector {
       }
     }
 
-    const keyPatternService = new RegExp(`\w+:jobs::([^:]+):(id|failed|active|waiting|stalled-check)$`);
+    const keyPatternService = new RegExp("\\w+:jobs::([^:]+):(id|failed|active|waiting|stalled-check)$");
     this.logger.info({ pattern: keyPatternService.source }, 'running queue discovery');
 
     const keyStreamService = this.defaultRedisClient.scanStream({
@@ -103,11 +103,7 @@ export class MetricCollector {
     })
     for await (const keyChunk of keyStreamService) {
       for (const key of keyChunk) {
-        this.logger.info('===>key: ', key);
-
         const match = keyPatternService.exec(key);
-        this.logger.info('===>match: ', match);
-
         if (match && match[1]) {
           this.addToQueueSet([match[1]]);
         }
